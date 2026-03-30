@@ -5,9 +5,7 @@
 import { LitElement, html, css } from "lit";
 import { DDDSuper } from "@haxtheweb/d-d-d/d-d-d.js";
 
-import "./play-list-slide.js";
 import "./slide-arrow.js";
-import "./slide-indicator.js";
 import "./fox-card.js";
 
 export class PlayListProject extends DDDSuper(LitElement) {
@@ -19,22 +17,38 @@ export class PlayListProject extends DDDSuper(LitElement) {
     return {
       ...super.properties,
       index: { type: Number, reflect: true },
+      posts: { type: Array, state: true },
       slideCount: { type: Number, state: true },
-      wrap: { type: Boolean },
-      foxData: { type: Object, state: true },
+      wrap: { type: Boolean }
     };
   }
 
   constructor() {
-    super();
-    this.index = 0;
-    this.slideCount = 1;
-    this.wrap = true;
-    this.foxData = null;
-    this.__observer = null;
-    this.__isAutoScrolling = false;
-    this.__scrollTimer = null;
+  super();
+  this.index = 0;
+  this.posts = [];
+  this.slideCount = 0;
+  this.wrap = true;
+
+  const params = new URLSearchParams(window.location.search);
+  const activeIndex = Number(params.get("activeIndex"));
+
+  if (!Number.isNaN(activeIndex) && activeIndex >= 0) {
+    this.index = activeIndex;
   }
+}
+
+updated(changedProperties) {
+  if (changedProperties.has("index")) {
+    this._updateQueryParam();
+  }
+}
+
+_updateQueryParam() {
+  const currentUrl = new URL(window.location.href);
+  currentUrl.searchParams.set("activeIndex", this.index);
+  history.pushState(null, "", currentUrl.toString());
+}
 
   static get styles() {
     return [
@@ -42,15 +56,11 @@ export class PlayListProject extends DDDSuper(LitElement) {
       css`
         :host {
           display: block;
-          box-sizing: border-box;
           width: 100%;
           max-width: 920px;
+          margin: 0 auto;
           position: relative;
-          background: transparent;
-          border: 0;
-          box-shadow: none;
-          margin: 0;
-          padding: 0;
+          box-sizing: border-box;
         }
 
         .shell {
@@ -58,161 +68,137 @@ export class PlayListProject extends DDDSuper(LitElement) {
           width: 100%;
         }
 
-        .viewport {
-          position: relative;
-          height: 650px;
-          background: #eef2f5;
-          border-radius: 10px;
+        .frame {
+          background: #2c2f36;
+          border-radius: 28px;
+          padding: 22px 22px 18px 22px;
           box-sizing: border-box;
-          overflow: hidden;
-          padding: 28px 28px 56px 28px;
-          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-        }
-
-        .slides {
+          min-height: 760px;
           position: relative;
-          z-index: 1;
-          height: 100%;
-          overflow-x: auto;
-          overflow-y: hidden;
-          scroll-behavior: smooth;
-          scroll-snap-type: x mandatory;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
         }
 
-        .slides::-webkit-scrollbar {
-          display: none;
+        .card-area {
+          width: 100%;
+          max-width: 640px;
+          margin: 0 auto;
         }
 
-        .slide-track {
+        .thumb-row {
+          margin-top: 16px;
           display: flex;
-          height: 100%;
-          width: 100%;
+          justify-content: center;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          padding-bottom: 6px;
         }
 
-        .slide-item {
-          flex: 0 0 100%;
-          width: 100%;
-          min-width: 100%;
-          height: 100%;
-          scroll-snap-align: start;
-          box-sizing: border-box;
+        .thumb-row::-webkit-scrollbar {
+          height: 8px;
         }
 
-        .left-arrow,
-        .right-arrow {
-          position: absolute;
-          top: calc(50% - 21px);
-          z-index: 3;
+        .thumb-row::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.25);
+          border-radius: 999px;
         }
 
-        .left-arrow {
-          left: -18px;
+        .thumb-btn {
+          border: 0;
+          background: transparent;
+          padding: 0;
+          cursor: pointer;
+          flex: 0 0 auto;
+          border-radius: 12px;
         }
 
-        .right-arrow {
-          right: -18px;
+        .thumb {
+          width: 58px;
+          height: 58px;
+          object-fit: cover;
+          border-radius: 12px;
+          display: block;
+          border: 3px solid transparent;
+          opacity: 0.72;
         }
 
-        .dots {
-          position: absolute;
-          left: 83px;
-          bottom: 22px;
-          z-index: 3;
+        .thumb-btn[aria-current="true"] .thumb {
+          border-color: #1d9bf0;
+          opacity: 1;
+        }
+
+        .arrow-row {
+          margin-top: 14px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          max-width: 640px;
+          margin-left: auto;
+          margin-right: auto;
         }
 
         .loading {
+          color: white;
+          min-height: 500px;
           display: flex;
           align-items: center;
           justify-content: center;
-          height: 100%;
-          font-size: 18px;
-        }
-
-        @media (max-width: 900px) {
-          :host {
-            max-width: 100%;
-          }
-
-          .viewport {
-            height: 560px;
-          }
+          font-size: 1.1rem;
         }
 
         @media (max-width: 700px) {
-          .viewport {
-            height: 500px;
-            padding: 18px 18px 44px 18px;
-            border-radius: 8px;
+          .frame {
+            padding: 14px 14px 16px 14px;
+            border-radius: 18px;
+            min-height: 660px;
           }
 
-          .left-arrow {
-            left: -10px;
-          }
-
-          .right-arrow {
-            right: -10px;
-          }
-
-          .dots {
-            left: 30px;
-            bottom: 14px;
+          .thumb {
+            width: 48px;
+            height: 48px;
           }
         }
-      `,
+      `
     ];
   }
 
   async firstUpdated() {
-    await this.fetchFox();
-    this.updateComplete.then(() => this._scrollToIndex(this.index, false));
+    await this.loadPosts();
   }
 
-  updated(changedProperties) {
-    if (changedProperties.has("index")) {
-      this._scrollToIndex(this.index, true);
-    }
-  }
-
-  disconnectedCallback() {
-    clearTimeout(this.__scrollTimer);
-    super.disconnectedCallback();
-  }
-
-  async fetchFox() {
+  async loadPosts() {
+   
     try {
-      const response = await fetch("https://randomfox.ca/floof/");
+      const response = await fetch(new URL("./data.json", import.meta.url).href);
       const data = await response.json();
-      this.foxData = data;
-      this.slideCount = 1;
+
+      const savedLikes =
+        JSON.parse(localStorage.getItem("insta-app-likes")) || {};
+
+      this.posts = data.posts.map((post) => ({
+        ...post,
+        liked:
+          typeof savedLikes[post.id] === "boolean"
+            ? savedLikes[post.id]
+            : false
+      }));
+
+      this.slideCount = this.posts.length;
+
+       if (this.index > this.slideCount - 1) {
+  this.index = 0;
+}
     } catch (error) {
-      console.error("Could not load fox data:", error);
+      console.error("Could not load posts:", error);
     }
   }
 
-  _scrollToIndex(index, smooth = true) {
-    const slidesEl = this.shadowRoot?.querySelector(".slides");
-    const target = this.shadowRoot?.querySelectorAll(".slide-item")[index];
-
-    if (!slidesEl || !target) return;
-
-    this.__isAutoScrolling = true;
-
-    slidesEl.scrollTo({
-      left: target.offsetLeft,
-      behavior: smooth ? "smooth" : "auto",
+  _saveLikes() {
+    const likesObject = {};
+    this.posts.forEach((post) => {
+      likesObject[post.id] = post.liked;
     });
-
-    if (!smooth) {
-      this.__isAutoScrolling = false;
-      return;
-    }
-
-    clearTimeout(this.__scrollTimer);
-    this.__scrollTimer = setTimeout(() => {
-      this.__isAutoScrolling = false;
-    }, 450);
+    localStorage.setItem("insta-app-likes", JSON.stringify(likesObject));
   }
 
   _goTo(i) {
@@ -222,26 +208,16 @@ export class PlayListProject extends DDDSuper(LitElement) {
 
   _goNext() {
     if (this.slideCount === 0) return;
-
-    if (this.wrap) {
-      this.index = (this.index + 1) % this.slideCount;
-    } else {
-      this.index = Math.min(this.index + 1, this.slideCount - 1);
-    }
+    this.index = this.wrap
+      ? (this.index + 1) % this.slideCount
+      : Math.min(this.index + 1, this.slideCount - 1);
   }
 
   _goPrev() {
     if (this.slideCount === 0) return;
-
-    if (this.wrap) {
-      this.index = (this.index - 1 + this.slideCount) % this.slideCount;
-    } else {
-      this.index = Math.max(this.index - 1, 0);
-    }
-  }
-
-  _onDotIndexChanged(e) {
-    this._goTo(Number(e.detail.index));
+    this.index = this.wrap
+      ? (this.index - 1 + this.slideCount) % this.slideCount
+      : Math.max(this.index - 1, 0);
   }
 
   _onArrow(e) {
@@ -252,48 +228,73 @@ export class PlayListProject extends DDDSuper(LitElement) {
     }
   }
 
+  _onLikeChanged(e) {
+    const updatedPosts = [...this.posts];
+    updatedPosts[this.index] = {
+      ...updatedPosts[this.index],
+      liked: e.detail.liked
+    };
+    this.posts = updatedPosts;
+    this._saveLikes();
+  }
+
   render() {
+    const currentPost = this.posts[this.index];
     const leftDisabled = !this.wrap && this.index === 0;
     const rightDisabled = !this.wrap && this.index === this.slideCount - 1;
 
     return html`
-      <div class="shell" @play-list-arrow=${this._onArrow}>
-        <slide-arrow
-          class="left-arrow"
-          direction="left"
-          .disabled=${leftDisabled}
-        ></slide-arrow>
+      <div class="shell">
+        <div class="frame">
+          ${currentPost
+            ? html`
+                <div class="card-area">
+                  <fox-card
+                    .username=${currentPost.username}
+                    .profileImage=${currentPost.profileImage}
+                    .image=${currentPost.image}
+                    .caption=${currentPost.caption}
+                    .dateTaken=${currentPost.dateTaken}
+                    .alt=${currentPost.alt}
+                    .liked=${currentPost.liked}
+                    .shareLink=${currentPost.shareLink}
+                    @like-changed=${this._onLikeChanged}
+                  ></fox-card>
+                </div>
 
-        <div class="viewport">
-          <div class="slides">
-            <div class="slide-track">
-              <div class="slide-item">
-                ${this.foxData
-                  ? html`
-                      <fox-card
-                        .image=${this.foxData.image}
-                        .link=${this.foxData.link}
-                      ></fox-card>
+                <div class="arrow-row" @play-list-arrow=${this._onArrow}>
+                  <slide-arrow
+                    direction="left"
+                    .disabled=${leftDisabled}
+                  ></slide-arrow>
+
+                  <slide-arrow
+                    direction="right"
+                    .disabled=${rightDisabled}
+                  ></slide-arrow>
+                </div>
+
+                <div class="thumb-row">
+                  ${this.posts.map(
+                    (post, i) => html`
+                      <button
+                        class="thumb-btn"
+                        @click=${() => this._goTo(i)}
+                        aria-label="Go to post ${i + 1}"
+                        aria-current="${i === this.index ? "true" : "false"}"
+                      >
+                        <img
+                          class="thumb"
+                          src="${post.thumbnail || post.image}"
+                          alt="${post.alt}"
+                        />
+                      </button>
                     `
-                  : html`<div class="loading">loading...</div>`}
-              </div>
-            </div>
-          </div>
-
-          <div class="dots">
-            <slide-indicator
-              .count=${this.slideCount}
-              .activeIndex=${this.index}
-              @play-list-index-changed=${this._onDotIndexChanged}
-            ></slide-indicator>
-          </div>
+                  )}
+                </div>
+              `
+            : html`<div class="loading">loading posts...</div>`}
         </div>
-
-        <slide-arrow
-          class="right-arrow"
-          direction="right"
-          .disabled=${rightDisabled}
-        ></slide-arrow>
       </div>
     `;
   }
