@@ -167,31 +167,34 @@ _updateQueryParam() {
   }
 
   async loadPosts() {
-   
-    try {
-      const response = await fetch(new URL("./data.json", import.meta.url).href);
-      const data = await response.json();
+  try {
+    // Fetch JSON data (works locally AND on Vercel)
+    const response = await fetch(
+      new URL("./data.json", import.meta.url).href
+    );
 
-      const savedLikes =
-        JSON.parse(localStorage.getItem("insta-app-likes")) || {};
+    const data = await response.json();
 
-      this.posts = data.posts.map((post) => ({
-        ...post,
-        liked:
-          typeof savedLikes[post.id] === "boolean"
-            ? savedLikes[post.id]
-            : false
-      }));
+    const savedLikes =
+      JSON.parse(localStorage.getItem("insta-app-likes")) || {};
 
-      this.slideCount = this.posts.length;
+    this.posts = data.posts.map((post) => ({
+      ...post,
+      liked:
+        typeof savedLikes[post.id] === "boolean"
+          ? savedLikes[post.id]
+          : false
+    }));
 
-       if (this.index > this.slideCount - 1) {
-  this.index = 0;
-}
-    } catch (error) {
-      console.error("Could not load posts:", error);
+    this.slideCount = this.posts.length;
+
+    if (this.index > this.slideCount - 1) {
+      this.index = 0;
     }
+  } catch (error) {
+    console.error("Could not load posts:", error);
   }
+}
 
   _saveLikes() {
     const likesObject = {};
