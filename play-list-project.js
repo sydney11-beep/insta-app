@@ -24,31 +24,45 @@ export class PlayListProject extends DDDSuper(LitElement) {
   }
 
   constructor() {
-  super();
-  this.index = 0;
-  this.posts = [];
-  this.slideCount = 0;
-  this.wrap = true;
+    super();
+    this.index = 0;
+    this.posts = [];
+    this.slideCount = 0;
+    this.wrap = true;
 
-  const params = new URLSearchParams(window.location.search);
-  const activeIndex = Number(params.get("activeIndex"));
+    const params = new URLSearchParams(window.location.search);
+    const activeIndex = Number(params.get("activeIndex"));
 
-  if (!Number.isNaN(activeIndex) && activeIndex >= 0) {
-    this.index = activeIndex;
+    if (!Number.isNaN(activeIndex) && activeIndex >= 0) {
+      this.index = activeIndex;
+    }
   }
-}
 
-updated(changedProperties) {
-  if (changedProperties.has("index")) {
-    this._updateQueryParam();
+  updated(changedProperties) {
+    if (changedProperties.has("index")) {
+      this._updateQueryParam();
+      this._scrollActiveThumbIntoView();
+    }
   }
-}
 
-_updateQueryParam() {
-  const currentUrl = new URL(window.location.href);
-  currentUrl.searchParams.set("activeIndex", this.index);
-  history.pushState(null, "", currentUrl.toString());
-}
+  _updateQueryParam() {
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set("activeIndex", this.index);
+    history.replaceState(null, "", currentUrl.toString());
+  }
+
+  _scrollActiveThumbIntoView() {
+    const activeThumb = this.renderRoot?.querySelector(
+      '.thumb-btn[aria-current="true"]'
+    );
+    if (activeThumb) {
+      activeThumb.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest"
+      });
+    }
+  }
 
   static get styles() {
     return [
@@ -77,21 +91,51 @@ _updateQueryParam() {
           position: relative;
         }
 
+        .carousel {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          max-width: 720px;
+          margin: 0 auto;
+          position: relative;
+        }
+
+        .left-arrow,
+        .right-arrow {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          z-index: 2;
+        }
+
+        .left-arrow {
+          left: -20px;
+        }
+
+        .right-arrow {
+          right: -20px;
+        }
+
         .card-area {
           width: 100%;
           max-width: 640px;
           margin: 0 auto;
+          flex: 1 1 auto;
         }
 
         .thumb-row {
           margin-top: 16px;
           display: flex;
-          justify-content: center;
+          justify-content: flex-start;
           align-items: center;
           gap: 10px;
           flex-wrap: nowrap;
           overflow-x: auto;
-          padding-bottom: 6px;
+          overflow-y: hidden;
+          padding: 0 10px 8px 10px;
+          scroll-behavior: smooth;
+          box-sizing: border-box;
         }
 
         .thumb-row::-webkit-scrollbar {
@@ -100,6 +144,11 @@ _updateQueryParam() {
 
         .thumb-row::-webkit-scrollbar-thumb {
           background: rgba(255, 255, 255, 0.25);
+          border-radius: 999px;
+        }
+
+        .thumb-row::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.08);
           border-radius: 999px;
         }
 
@@ -127,16 +176,6 @@ _updateQueryParam() {
           opacity: 1;
         }
 
-        .arrow-row {
-          margin-top: 14px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          max-width: 640px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
         .loading {
           color: white;
           min-height: 500px;
@@ -153,6 +192,14 @@ _updateQueryParam() {
             min-height: 660px;
           }
 
+          .left-arrow {
+            left: -6px;
+          }
+
+          .right-arrow {
+            right: -6px;
+          }
+
           .thumb {
             width: 48px;
             height: 48px;
@@ -167,34 +214,30 @@ _updateQueryParam() {
   }
 
   async loadPosts() {
-  try {
-    // Fetch JSON data (works locally AND on Vercel)
-    const response = await fetch(
-      new URL("./data.json", import.meta.url).href
-    );
+    try {
+      const response = await fetch(new URL("./data.json", import.meta.url).href);
+      const data = await response.json();
 
-    const data = await response.json();
+      const savedLikes =
+        JSON.parse(localStorage.getItem("insta-app-likes")) || {};
 
-    const savedLikes =
-      JSON.parse(localStorage.getItem("insta-app-likes")) || {};
+      this.posts = data.posts.map((post) => ({
+        ...post,
+        liked:
+          typeof savedLikes[post.id] === "boolean"
+            ? savedLikes[post.id]
+            : false
+      }));
 
-    this.posts = data.posts.map((post) => ({
-      ...post,
-      liked:
-        typeof savedLikes[post.id] === "boolean"
-          ? savedLikes[post.id]
-          : false
-    }));
+      this.slideCount = this.posts.length;
 
-    this.slideCount = this.posts.length;
-
-    if (this.index > this.slideCount - 1) {
-      this.index = 0;
+      if (this.index > this.slideCount - 1) {
+        this.index = 0;
+      }
+    } catch (error) {
+      console.error("Could not load posts:", error);
     }
-  } catch (error) {
-    console.error("Could not load posts:", error);
   }
-}
 
   _saveLikes() {
     const likesObject = {};
@@ -251,27 +294,31 @@ _updateQueryParam() {
         <div class="frame">
           ${currentPost
             ? html`
-                <div class="card-area">
-                  <fox-card
-                    .username=${currentPost.username}
-                    .profileImage=${currentPost.profileImage}
-                    .image=${currentPost.image}
-                    .caption=${currentPost.caption}
-                    .dateTaken=${currentPost.dateTaken}
-                    .alt=${currentPost.alt}
-                    .liked=${currentPost.liked}
-                    .shareLink=${currentPost.shareLink}
-                    @like-changed=${this._onLikeChanged}
-                  ></fox-card>
-                </div>
-
-                <div class="arrow-row" @play-list-arrow=${this._onArrow}>
+                <div class="carousel" @play-list-arrow=${this._onArrow}>
                   <slide-arrow
+                    class="left-arrow"
                     direction="left"
                     .disabled=${leftDisabled}
                   ></slide-arrow>
 
+                  <div class="card-area">
+                    <fox-card
+                      .displayName=${currentPost.displayName}
+                      .username=${currentPost.username}
+                      .memberSince=${currentPost.memberSince}
+                      .profileImage=${currentPost.profileImage}
+                      .image=${currentPost.image}
+                      .caption=${currentPost.caption}
+                      .dateTaken=${currentPost.dateTaken}
+                      .alt=${currentPost.alt}
+                      .liked=${currentPost.liked}
+                      .shareLink=${currentPost.shareLink}
+                      @like-changed=${this._onLikeChanged}
+                    ></fox-card>
+                  </div>
+
                   <slide-arrow
+                    class="right-arrow"
                     direction="right"
                     .disabled=${rightDisabled}
                   ></slide-arrow>

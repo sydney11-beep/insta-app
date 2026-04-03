@@ -9,20 +9,25 @@ export class FoxCard extends DDDSuper(LitElement) {
   static get properties() {
     return {
       ...super.properties,
+      displayName: { type: String, attribute: "display-name" },
       username: { type: String },
+      memberSince: { type: String, attribute: "member-since" },
       profileImage: { type: String, attribute: "profile-image" },
       image: { type: String },
       caption: { type: String },
       dateTaken: { type: String, attribute: "date-taken" },
       alt: { type: String },
       liked: { type: Boolean, reflect: true },
-      shareLink: { type: String, attribute: "share-link" }
+      shareLink: { type: String, attribute: "share-link" },
+      copied: { type: Boolean, state: true }
     };
   }
 
   constructor() {
     super();
+    this.displayName = "";
     this.username = "";
+    this.memberSince = "";
     this.profileImage = "";
     this.image = "";
     this.caption = "";
@@ -30,6 +35,8 @@ export class FoxCard extends DDDSuper(LitElement) {
     this.alt = "";
     this.liked = false;
     this.shareLink = "";
+    this.copied = false;
+    this._copyTimeout = null;
   }
 
   static get styles() {
@@ -38,140 +45,127 @@ export class FoxCard extends DDDSuper(LitElement) {
       css`
         :host {
           display: block;
-          width: 100%;
-          height: 100%;
-          box-sizing: border-box;
         }
 
         .card {
           background: white;
-          border-radius: 22px;
+          border-radius: 20px;
           overflow: hidden;
-          min-height: 620px;
           display: flex;
           flex-direction: column;
-          box-sizing: border-box;
         }
 
         .header {
           display: flex;
           align-items: center;
           gap: 12px;
-          padding: 16px 18px;
-          color: #111;
-          font-weight: 700;
+          padding: 14px;
         }
 
         .avatar {
-          width: 42px;
-          height: 42px;
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
           object-fit: cover;
-          background: #d9d9d9;
-          flex: 0 0 auto;
         }
 
-        .username {
-          font-size: 1rem;
+        .meta {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .display-name {
           font-weight: 700;
         }
 
-        .image-wrap {
-          padding: 0 18px;
+        .username {
+          font-size: 0.85rem;
+          color: #666;
         }
 
-        .post-image {
+        .image {
           width: 100%;
-          height: 360px;
+          height: 320px;
           object-fit: cover;
-          display: block;
-          border-radius: 14px;
-          background: #e5e5e5;
         }
 
         .content {
-          padding: 14px 18px 18px 18px;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          color: #111;
+          padding: 14px;
         }
 
         .actions {
           display: flex;
+          gap: 14px;
           align-items: center;
-          gap: 16px;
+          position: relative;
         }
 
-        .heart-btn {
+        button {
           border: none;
-          background: transparent;
-          padding: 0;
+          background: none;
           cursor: pointer;
-          line-height: 1;
         }
 
         .heart {
-          color: #c2185b;
-          font-size: 2.3rem;
-          line-height: 1;
-          display: inline-block;
+          font-size: 1.8rem;
+          color: #e11d48;
         }
 
-        .share-link {
-          font-size: 1rem;
+        .share {
           color: #1d70b8;
-          text-decoration: none;
           font-weight: 600;
-          line-height: 1;
+        }
+
+        .popup {
+          position: absolute;
+          top: -30px;
+          left: 40px;
+          background: black;
+          color: white;
+          padding: 5px 10px;
+          border-radius: 8px;
+          font-size: 0.75rem;
         }
 
         .caption {
-          font-size: 1rem;
-          line-height: 1.45;
+          margin-top: 8px;
         }
 
         .date {
-          font-size: 0.92rem;
+          font-size: 0.85rem;
           color: #666;
         }
 
-        @media (max-width: 700px) {
+        @media (prefers-color-scheme: dark) {
           .card {
-            min-height: 560px;
+            background: #181a1f;
+            color: white;
           }
 
-          .post-image {
-            height: 280px;
+          .username,
+          .date {
+            color: #bbb;
+          }
+
+          .popup {
+            background: white;
+            color: black;
           }
         }
-
-        @media (prefers-color-scheme: dark) {
-  .card {
-    background: #181a1f;
-  }
-
-  .header,
-  .content,
-  .username,
-  .caption {
-    color: #f5f5f5;
-  }
-
-  .date {
-    color: #c7c7c7;
-  }
-
-  .share-link {
-    color: #76b7ff;
-  }
-}
       `
     ];
   }
 
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._copyTimeout) {
+      clearTimeout(this._copyTimeout);
+    }
+  }
+
   _toggleLike() {
     this.liked = !this.liked;
+
     this.dispatchEvent(
       new CustomEvent("like-changed", {
         bubbles: true,
@@ -181,40 +175,53 @@ export class FoxCard extends DDDSuper(LitElement) {
     );
   }
 
+  async _copyLink() {
+    try {
+      await navigator.clipboard.writeText(this.shareLink);
+      this.copied = true;
+
+      if (this._copyTimeout) clearTimeout(this._copyTimeout);
+
+      this._copyTimeout = setTimeout(() => {
+        this.copied = false;
+      }, 1500);
+    } catch (e) {
+      console.error("copy failed");
+    }
+  }
+
   render() {
     return html`
       <div class="card">
         <div class="header">
-          <img
-            class="avatar"
-            src="${this.profileImage}"
-            alt="${this.username} profile picture"
-          />
-          <div class="username">${this.username}</div>
+          <img class="avatar" src="${this.profileImage}" />
+          <div class="meta">
+            <div class="display-name">${this.displayName}</div>
+            <div class="username">@${this.username}</div>
+            <div class="date">Since ${this.memberSince}</div>
+          </div>
         </div>
 
-        <div class="image-wrap">
-          <img class="post-image" src="${this.image}" alt="${this.alt}" />
-        </div>
+        <img
+          class="image"
+          src="${this.image}"
+          alt="${this.alt}"
+          loading="lazy"
+        />
 
         <div class="content">
           <div class="actions">
-            <button
-              class="heart-btn"
-              @click=${this._toggleLike}
-              aria-label="Like post"
-            >
+            <button @click=${this._toggleLike}>
               <span class="heart">${this.liked ? "♥" : "♡"}</span>
             </button>
 
-            <a
-              class="share-link"
-              href="${this.shareLink}"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <button class="share" @click=${this._copyLink}>
               Share
-            </a>
+            </button>
+
+            ${this.copied
+              ? html`<div class="popup">Copied!</div>`
+              : ""}
           </div>
 
           <div class="caption">${this.caption}</div>
