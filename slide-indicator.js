@@ -26,28 +26,27 @@ export class SlideIndicator extends DDDSuper(LitElement) {
       css`
         :host {
           display: inline-flex;
-          gap: var(--ddd-spacing-4, 16px);
+          gap: var(--ddd-spacing-4);
           align-items: center;
         }
 
         button {
           width: 11px;
           height: 11px;
-          border-radius: 999px;
+          border-radius: var(--ddd-radius-rounded);
           border: 0;
-          padding: 0;
-          margin: 0;
+          padding: var(--ddd-spacing-0);
+          margin: var(--ddd-spacing-0);
           cursor: pointer;
-
-          background: #c7ccd2;
+          background: var(--ddd-theme-default-limestoneLight);
         }
 
         button[aria-current="true"] {
-          background: #1d9bf0;
+          background: var(--ddd-theme-default-skyBlue);
         }
 
         button:focus-visible {
-          outline: 2px solid #1f448c;
+          outline: 2px solid var(--ddd-theme-default-beaverBlue);
           outline-offset: 2px;
         }
       `,

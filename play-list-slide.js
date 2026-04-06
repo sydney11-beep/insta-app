@@ -38,27 +38,25 @@ export class PlayListSlide extends DDDSuper(LitElement) {
           box-sizing: border-box;
           display: flex;
           flex-direction: column;
-          padding: var(--ddd-spacing-10, 44px)
-            var(--ddd-spacing-12, 56px)
-            var(--ddd-spacing-4, 18px)
-            var(--ddd-spacing-12, 56px);
+          padding: var(--ddd-spacing-11) var(--ddd-spacing-14)
+            var(--ddd-spacing-4) var(--ddd-spacing-14);
           background: transparent;
         }
 
         .top {
-          margin: 0;
-          color: #3175bf;
-          font-size: 17px;
-          font-weight: var(--ddd-font-weight-bold, 700);
+          margin: var(--ddd-spacing-0);
+          color: var(--ddd-theme-default-beaverBlue);
+          font-size: var(--ddd-font-size-3xs);
+          font-weight: var(--ddd-font-weight-bold);
           text-transform: uppercase;
           letter-spacing: 0.02em;
         }
 
         .title {
-          margin: 8px 0 0 0;
-          color: #2a4b8d;
-          font-size: 65px;
-          font-weight: var(--ddd-font-weight-bold, 700);
+          margin: var(--ddd-spacing-2) 0 0 0;
+          color: var(--ddd-theme-default-beaverBlue);
+          font-size: var(--ddd-font-size-3xl);
+          font-weight: var(--ddd-font-weight-bold);
           line-height: 1.05;
           letter-spacing: -0.02em;
           white-space: nowrap;
@@ -67,8 +65,8 @@ export class PlayListSlide extends DDDSuper(LitElement) {
         .divider {
           width: 70px;
           height: 7px;
-          background: #6fb7e3;
-          border-radius: 999px;
+          background: var(--ddd-theme-default-pughBlue);
+          border-radius: var(--ddd-radius-rounded);
           margin: 36px 0 14px 0;
           display: block;
           flex: 0 0 auto;
@@ -80,11 +78,11 @@ export class PlayListSlide extends DDDSuper(LitElement) {
           min-height: 0;
           overflow-y: auto;
           overflow-x: hidden;
-          color: #000000;
-          font-size: 17px;
+          color: var(--ddd-theme-default-black);
+          font-size: var(--ddd-font-size-3xs);
           line-height: 1.35;
-          margin-top: 0;
-          padding-right: 8px;
+          margin-top: var(--ddd-spacing-0);
+          padding-right: var(--ddd-spacing-2);
           word-break: break-word;
           overflow-wrap: anywhere;
         }
@@ -94,21 +92,21 @@ export class PlayListSlide extends DDDSuper(LitElement) {
         }
 
         .body::-webkit-scrollbar-track {
-          background: #e8eaee;
+          background: var(--ddd-theme-default-limestoneLight);
         }
 
         .body::-webkit-scrollbar-thumb {
-          background-color: #a6aebe;
-          border-radius: 20px;
-          border: 3px solid #e8eaee;
+          background-color: var(--ddd-theme-default-limestoneGray);
+          border-radius: var(--ddd-radius-xl);
+          border: var(--ddd-border-md);
         }
 
         .body ::slotted(*) {
-          margin: 0;
+          margin: var(--ddd-spacing-0);
         }
 
         .body ::slotted(p) {
-          margin: 0;
+          margin: var(--ddd-spacing-0);
         }
 
         @media (max-width: 900px) {
@@ -131,13 +129,13 @@ export class PlayListSlide extends DDDSuper(LitElement) {
           }
 
           .top {
-            font-size: 13px;
+            font-size: var(--ddd-font-size-4xs);
           }
 
           .title {
             font-size: 2.4rem;
             max-width: 100%;
-            margin-top: 8px;
+            margin-top: var(--ddd-spacing-2);
             white-space: normal;
           }
 
@@ -148,9 +146,9 @@ export class PlayListSlide extends DDDSuper(LitElement) {
 
           .body {
             width: 100%;
-            font-size: 15px;
+            font-size: var(--ddd-font-size-4xs);
             line-height: 1.4;
-            padding-right: 8px;
+            padding-right: var(--ddd-spacing-2);
           }
         }
       `,

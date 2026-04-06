@@ -31,24 +31,23 @@ export class SlideArrow extends DDDSuper(LitElement) {
         button {
           width: 42px;
           height: 42px;
-          border-radius: 50%;
-          border: 2px solid #0077c8;
-          background: var(--ddd-theme-default-white, #ffffff);
-          color: #0077c8;
+          border-radius: var(--ddd-radius-circle);
+          border: var(--ddd-border-sm);
+          border-color: var(--ddd-theme-default-skyBlue);
+          background: var(--ddd-theme-default-white);
+          color: var(--ddd-theme-default-skyBlue);
           cursor: pointer;
-
           display: flex;
           align-items: center;
           justify-content: center;
-
-          padding: 0;
+          padding: var(--ddd-spacing-0);
           box-sizing: border-box;
           font: inherit;
         }
 
         button:hover,
         button:focus-visible {
-          background: #f8fbff;
+          background: var(--ddd-accent-0);
         }
 
         button:disabled {
@@ -57,9 +56,9 @@ export class SlideArrow extends DDDSuper(LitElement) {
         }
 
         .arrow {
-          font-size: 34px;
+          font-size: var(--ddd-font-size-ml);
           line-height: 1;
-          font-weight: var(--ddd-font-weight-bold, 700);
+          font-weight: var(--ddd-font-weight-bold);
         }
       `,
     ];

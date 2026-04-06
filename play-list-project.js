@@ -83,11 +83,12 @@ export class PlayListProject extends DDDSuper(LitElement) {
         }
 
         .frame {
-          background: #2c2f36;
-          border-radius: 28px;
-          padding: 22px 22px 18px 22px;
+          background: var(--ddd-primary-4);
+          border-radius: var(--ddd-radius-lg);
+          padding: var(--ddd-spacing-5) var(--ddd-spacing-5) var(--ddd-spacing-4)
+            var(--ddd-spacing-5);
           box-sizing: border-box;
-          min-height: 760px;
+          min-height: 860px;
           position: relative;
         }
 
@@ -95,7 +96,7 @@ export class PlayListProject extends DDDSuper(LitElement) {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 16px;
+          gap: var(--ddd-spacing-4);
           max-width: 720px;
           margin: 0 auto;
           position: relative;
@@ -120,75 +121,86 @@ export class PlayListProject extends DDDSuper(LitElement) {
         .card-area {
           width: 100%;
           max-width: 640px;
+          height: 760px;
           margin: 0 auto;
           flex: 1 1 auto;
         }
 
         .thumb-row {
-          margin-top: 16px;
+          margin-top: var(--ddd-spacing-4);
           display: flex;
           justify-content: flex-start;
           align-items: center;
-          gap: 10px;
+          gap: var(--ddd-spacing-3);
           flex-wrap: nowrap;
           overflow-x: auto;
           overflow-y: hidden;
-          padding: 0 10px 8px 10px;
+          padding: var(--ddd-spacing-0) var(--ddd-spacing-3) var(--ddd-spacing-1)
+            var(--ddd-spacing-3);
           scroll-behavior: smooth;
           box-sizing: border-box;
         }
 
         .thumb-row::-webkit-scrollbar {
-          height: 8px;
+          height: var(--ddd-spacing-2);
         }
 
         .thumb-row::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.25);
-          border-radius: 999px;
+          background: var(--ddd-theme-default-white65);
+          border-radius: var(--ddd-radius-rounded);
         }
 
         .thumb-row::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.08);
-          border-radius: 999px;
+          background: var(--ddd-theme-default-navy40);
+          border-radius: var(--ddd-radius-rounded);
         }
 
         .thumb-btn {
-          border: 0;
-          background: transparent;
-          padding: 0;
+          border: none;
+          background: var(--ddd-theme-default-potential0);
+          padding: var(--ddd-spacing-0);
           cursor: pointer;
           flex: 0 0 auto;
-          border-radius: 12px;
+          border-radius: var(--ddd-radius-md);
+        }
+
+        .thumb-btn:focus-visible {
+          outline: var(--ddd-border-sm);
+          outline-color: var(--ddd-theme-default-skyBlue);
+          outline-offset: var(--ddd-spacing-1);
         }
 
         .thumb {
           width: 58px;
           height: 58px;
           object-fit: cover;
-          border-radius: 12px;
+          border-radius: var(--ddd-radius-md);
           display: block;
-          border: 3px solid transparent;
+          border: var(--ddd-border-md);
+          border-color: var(--ddd-theme-default-potential0);
           opacity: 0.72;
+          background: var(--ddd-accent-2);
         }
 
         .thumb-btn[aria-current="true"] .thumb {
-          border-color: #1d9bf0;
+          border-color: var(--ddd-theme-default-skyBlue);
           opacity: 1;
         }
 
         .loading {
-          color: white;
+          color: var(--ddd-theme-default-white);
           min-height: 500px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1.1rem;
+          font-size: var(--ddd-font-size-xxs);
         }
 
         @media (max-width: 700px) {
           .frame {
-            padding: 14px 14px 16px 14px;
-            border-radius: 18px;
+            padding: var(--ddd-spacing-3) var(--ddd-spacing-3) var(--ddd-spacing-4)
+              var(--ddd-spacing-3);
+            border-radius: var(--ddd-radius-xl);
             min-height: 660px;
           }
 
@@ -198,6 +210,10 @@ export class PlayListProject extends DDDSuper(LitElement) {
 
           .right-arrow {
             right: -6px;
+          }
+
+          .card-area {
+            height: 760px;
           }
 
           .thumb {
@@ -337,6 +353,8 @@ export class PlayListProject extends DDDSuper(LitElement) {
                           class="thumb"
                           src="${post.thumbnail || post.image}"
                           alt="${post.alt}"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </button>
                     `
