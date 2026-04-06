@@ -176,17 +176,18 @@ export class FoxCard extends DDDSuper(LitElement) {
         }
 
         .popup {
-          position: absolute;
-          top: -36px;
-          left: var(--ddd-spacing-12);
-          background: var(--ddd-primary-2);
-          color: var(--ddd-accent-6);
-          padding: 6px 10px;
-          border-radius: var(--ddd-radius-rounded);
-          font-size: 0.78rem;
-          white-space: nowrap;
-          box-shadow: var(--ddd-boxShadow-md);
-        }
+  position: absolute;
+  top: 50%;
+  left: var(--ddd-spacing-30); 
+  transform: translateY(-50%);
+  background: var(--ddd-primary-2);
+  color: var(--ddd-accent-6);
+  padding: 6px 10px;
+  border-radius: var(--ddd-radius-rounded);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  box-shadow: var(--ddd-boxShadow-md);
+}
 
         .text-scroll {
           flex: 1 1 auto;
